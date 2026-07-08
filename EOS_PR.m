@@ -1,15 +1,11 @@
-function p = EOS_PR(rho,T)
+function p = EOS_PR(rho,T,sub)
 
 Ru = 8.31443;
-[a,b,M,~,~] = cal_PR(T);
+[a,b,M,~,~] = cal_PR(T,sub);
 
 V = M./rho;
 
 p = Ru.*T./(V-b) - a./(V.^2+2*V.*b-b.^2);
 end
-
-
-
-
 
 

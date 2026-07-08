@@ -1,6 +1,8 @@
-%This program calculates the flow variables on each interface.
 function flux_condition = cal_flux_condition_nonclassical(W_L,W_R,star,type_L,States_L)
+%Pre-computed flux conditions.
 
+sub0 = 0;
+sub1 = 1;
 
 p_star = star(1,:);
 L = star(2,:); R = star(3,:);
@@ -36,39 +38,39 @@ W_b_L = W_L;
         end
      end
 
-        rho_star_R = cal_rho_hugoniot(W_R, p_star);
+        rho_star_R = cal_rho_hugoniot(W_R, p_star, sub1);
         u_star = ((u_L+L)+(u_R-R))/2;      
 
-        c_L = cal_eq_parameter(p_L,rho_L);
+        c_L = cal_eq_parameter(p_L,rho_L,sub0);
 
         if r_L == 1
-            rho_star_L = cal_rho_isentropic(W_L,p_star);
-            c_star_L = cal_eq_parameter(p_star,rho_star_L);
+            rho_star_L = cal_rho_isentropic(W_L,p_star,sub0);
+            c_star_L = cal_eq_parameter(p_star,rho_star_L,sub0);
             S_L_tail = u_star - c_star_L;
             S_RS_L = S_L_tail;
         elseif r_L == 2
-            [p_r_L, rho_r_L, j_r_L] = cal_RS_wave(W_L, p_star, pc_L);
-            JL1 = cal_J(W_L,p_r_L);
+            [p_r_L, rho_r_L, j_r_L] = cal_RS_wave(W_L, p_star, pc_L,sub0);
+            JL1 = cal_J(W_L,p_r_L,sub0);
             u_r_L = u_L + JL1;
             W_r_L = [rho_r_L; u_r_L; p_r_L];
-            rho_star_L = cal_rho_isentropic(W_r_L,p_star);
+            rho_star_L = cal_rho_isentropic(W_r_L,p_star,sub0);
             S_RS_L = u_r_L - j_r_L/rho_r_L;
             S_L_tail = S_RS_L;
         else
-            JL1 = cal_J(W_L,pa_L);
+            JL1 = cal_J(W_L,pa_L,sub0);
             JL2 = (pa_L-pb_L)./(rhoa_L*ca_L);
             ua_L = u_L + JL1;
             ub_L = u_L + JL1 + JL2;
             W_b_L = [rhob_L; ub_L; pb_L];
-            rho_star_L = cal_rho_isentropic(W_b_L,p_star);
-            c_star_L = cal_eq_parameter(p_star,rho_star_L); 
+            rho_star_L = cal_rho_isentropic(W_b_L,p_star,sub0);
+            c_star_L = cal_eq_parameter(p_star,rho_star_L,sub0); 
             S_L_tail = ua_L - ca_L;
             S_RS_L = u_star - c_star_L;
 
         end
 
         S_L_head = u_L - c_L;
-        S_R = cal_shock_speed(W_R, -1, p_star);
+        S_R = cal_shock_speed(W_R, -1, p_star,sub1);
         
        W1_L =  W_L;
        W2_L =  W_L;
@@ -77,30 +79,28 @@ W_b_L = W_L;
        x_ref2_L =  S_L_tail;     
 
 
-       N = 1e4;        
+       N = 1e3;        
 
-        [~,~,s0_L,~,~,~]= cal_eq_parameter(p_L,rho_L);
-        [~,pc] = cal_critical_parameter();
+        [~,pc] = cal_critical_parameter(sub0);
         t = linspace(0, 1, N)'; 
         p1_L = t * (p_star - p_L) + p_L;
         rho1_L = zeros(N,1);
-        rho1_L(1) = cal_rho_isentropic0(s0_L, rho_L, p1_L(1));
-        for i = 2:N
-            rho1_L(i) = cal_rho_isentropic0(s0_L, rho1_L(i-1), p1_L(i));
+        for i = 1:N
+            rho1_L(i) = cal_rho_isentropic(W_L,  p1_L(i),sub0);
         end
        for i = 1:N
          if p1_L(i) < pc*0.999
-             [~,rho_v,rho_l,~, ~] = cal_T_saturation(p1_L(i));
+             [~,rho_v,rho_l,~, ~] = cal_T_saturation(p1_L(i),sub0);
               if rho1_L(i) > rho_v && rho1_L(i)<rho_l
                   break
               end
          end
        end
        if i ~= N
-           c_eq1_L = cal_eq_parameter(p1_L(i-1),rho1_L(i-1));
-           c_eq2_L = cal_eq_parameter(p1_L(i),rho1_L(i));
-           J1_L = cal_J(W_L,p1_L(i-1));
-           J2_L = cal_J(W_L,p1_L(i));
+           c_eq1_L = cal_eq_parameter(p1_L(i-1),rho1_L(i-1),sub0);
+           c_eq2_L = cal_eq_parameter(p1_L(i),rho1_L(i),sub0);
+           J1_L = cal_J(W_L,p1_L(i-1),sub0);
+           J2_L = cal_J(W_L,p1_L(i),sub0);
            x_ref1_L = u_L - c_eq1_L + J1_L;
            x_ref2_L = u_L - c_eq2_L + J2_L;
            u1_L = c_eq1_L+x_ref1_L;

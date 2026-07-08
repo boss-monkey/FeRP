@@ -1,6 +1,6 @@
-function [d2pdrho2,d2pdTdrho,d2pdT2] = EOS_PR_d2p(rho,T)
+function [d2pdrho2,d2pdTdrho,d2pdT2] = EOS_PR_d2p(rho,T,sub)
 
-[a,b,M,dadT,d2adT2] = cal_PR(T);
+[a,b,M,dadT,d2adT2] = cal_PR(T,sub);
 Ru =8.31443;
 
 V = M./rho;

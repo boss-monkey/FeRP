@@ -1,19 +1,17 @@
-function [type,States] = cal_raf_type(W,p_star)
-
-rho = W(1,:);
+function [type,States] = cal_raf_type(W, sub,p_star)
+%Rarefaction wave types pre-computation
 p   = W(3,:);
 
-if nargin < 2
-   p_star = 200;
+if nargin < 3
+   p_star = 1e4;
 end
 
-[~,~,s0,~,~,~]= cal_eq_parameter(p,rho);
-[~,pc] = cal_critical_parameter();
+[~,pc] = cal_critical_parameter(sub);
 
-N = 2e4;
+N = 1e3;
 P = linspace(p, p_star, N);
 RHO = zeros(1,N);
-RHO(1) = cal_rho_isentropic0(s0, rho, p);
+RHO(1) =  cal_rho_isentropic(W,p,sub);
 
 P = [P(1),P];
 RHO = [RHO(1),RHO];
@@ -21,11 +19,11 @@ disp('————Start calculating the isentropic line boundary————');
 
 for i = 3:N+1
 
-    RHO(i) = cal_rho_isentropic0(s0, RHO(i-1), P(i));
+    RHO(i) = cal_rho_isentropic(W,P(i),sub);
 
  if P(i) < pc*0.999
-     [~,rho_vj,rho_lj,~, ~] = cal_T_saturation(P(i-1));
-     [~,rho_vi,~,~, ~] = cal_T_saturation(P(i));
+     [~,rho_vj,rho_lj,~, ~] = cal_T_saturation(P(i-1),sub);
+     [~,rho_vi,~,~, ~] = cal_T_saturation(P(i),sub);
       if RHO(i-1) > rho_vj && RHO(i-1)<rho_lj && RHO(i) < rho_vi          
           break
       end
@@ -48,7 +46,7 @@ end
      state_d = [P(i),RHO(i)];
      Pa_guess = P(i-1);
      Pb_guess = P(i);
-     [state_a, state_b] = cal_RSR_wave(W, Pa_guess, Pb_guess);
+     [state_a, state_b] = cal_RSR_wave(W, Pa_guess, Pb_guess,sub);
      disp(' '); 
      
  end

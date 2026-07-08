@@ -1,6 +1,6 @@
-function dpdT = EOS_PR_dT(rho,T)
+function dpdT = EOS_PR_dT(rho,T,sub)
 
-[~,b,M,dadT,~] = cal_PR(T);
+[~,b,M,dadT,~] = cal_PR(T,sub);
 V = M./rho;
 Ru =8.31443;
 dpdT = Ru./(V-b) - dadT./(V.^2+2*V.*b-b.^2);
